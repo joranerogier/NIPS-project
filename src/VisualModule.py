@@ -11,7 +11,7 @@ class Environment:
     def __init__(self, ip="127.0.0.1", port=13000, size=768, timescale=1):
         self.initial_state_image = None
         self.image_p = []
-        self.into_p = []
+        self.info_p = []
         self.reward_p = []
         self.Enemy_path = []
         self.Agent_path = []
@@ -27,7 +27,7 @@ class Environment:
     def reset(self):
         self._send(1, 0)
         self.image_p = []
-        self.into_p = []
+        self.info_p = []
         self.reward_p = []
         self.Enemy_path = []
         self.Agent_path = []
@@ -100,7 +100,7 @@ class Environment:
             self.initial_state_image = np.array(state).reshape(768, 768, 3)
             info, reward, state_image_plus, Agent_coord, Enemy_coord = self.coord(self.initial_state_image, ACTION,
                                                                                   vew_image)
-            self.into_p.append(info), self.reward_p.append(reward), \
+            self.info_p.append(info), self.reward_p.append(reward), \
             self.Agent_path.append(list(Agent_coord)), self.Enemy_path.append(
                 list(Enemy_coord))
             self.image_p.append(state_image_plus)
@@ -109,7 +109,7 @@ class Environment:
             state_image_plus = self.image_p[-1]
             info, reward, state_image_plus, Agent_coord, Enemy_coord = self.coord(state_image_plus, ACTION, vew_image)
             self.image_p[-1] = state_image_plus
-            self.into_p.append(info), self.reward_p.append(reward), self.Agent_path.append(
+            self.info_p.append(info), self.reward_p.append(reward), self.Agent_path.append(
                 list(Agent_coord)), self.Enemy_path.append(
                 list(Enemy_coord))
         return info, reward, Agent_coord, Enemy_coord
