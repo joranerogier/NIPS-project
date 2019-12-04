@@ -7,7 +7,7 @@ import numpy as np
 import socket
 from PIL import Image
 # %%
-class Environment:
+class AgentEnvironment:
     def __init__(self, ip="127.0.0.1", port=13000, size=768, timescale=1):
         self.initial_state_image = None
         self.image_p = []
@@ -57,20 +57,19 @@ class Environment:
     def firstcoord(self, initial_state, action, image=False):
         state_image = np.array(initial_state).reshape(768, 768, 3)
 
-        info, reward, state = self.step(action)  # Action to get angle
+        info, reward, next_state = self.step(action)  # Action to get angle
 
-        state_image_plus = np.array(state).reshape(768, 768, 3)
+        state_image_plus = np.array(next_state).reshape(768, 768, 3)
         diff = np.subtract(state_image_plus, state_image)
         diff[:, :, 0] = np.array((pd.DataFrame(np.abs(diff[:, :, 0])) > 120) * diff[:, :, 0] * 10)  # Our agent
-
         diff[:, :, 2] = np.array((pd.DataFrame(np.abs(diff[:, :, 2])) > 120) * diff[:, :, 2] * 10)  # Enemy agent
         Agent = diff[:, :, 0]  # Only use the chanel that reflect the agent colour
         Enemy = diff[:, :, 2]
-        indices = np.where(
-            Agent != [0])  # Just find where the values are not zero, and we have the position of our agent
+        indices = np.where(Agent != [0])  # Just find where the values are not zero, and we have the position of our agent
         indices_e = np.where(Enemy != [0])  # For each agent
         Agent_coord = int(np.median(indices[1])), int(np.median(indices[0]))
         Enemy_coord = int(np.median(indices_e[1])), int(np.median(indices_e[0]))
+
         if image == True:
             final = cv2.resize(state_image_plus, (768, 768))
             # Plot to see where the agents are in the coordenades
@@ -87,29 +86,30 @@ class Environment:
             PLT.imshow(final)
             PLT.rcParams["figure.figsize"] = (5, 5)
             PLT.show()
-        return info, reward, state_image_plus, Agent_coord, Enemy_coord
+        return info, reward, state_image_plus, Agent_coord, Enemy_coord, next_state
 
     def coord(self, initial_state_image, action, image=False):
-        info, reward, state_image_plus, Agent_coord, Enemy_coord = self.firstcoord(initial_state_image, action,
+        info, reward, state_image_plus, Agent_coord, Enemy_coord, following_state = self.firstcoord(initial_state_image, action,
                                                                                    image=image)
-        return info, reward, state_image_plus, Agent_coord, Enemy_coord
+        return info, reward, state_image_plus, Agent_coord, Enemy_coord, following_state
 
-    def simpleCoord(self, ACTION, vew_image=0):
+    def simpleCoord(self, ACTION, view_image=0):
         if len(self.image_p) == 0:
+            # start with empty lists and add first elements
             info, reward, state = self.reset()
             self.initial_state_image = np.array(state).reshape(768, 768, 3)
-            info, reward, state_image_plus, Agent_coord, Enemy_coord = self.coord(self.initial_state_image, ACTION,
-                                                                                  vew_image)
+            info, reward, state_image_plus, Agent_coord, Enemy_coord, nxt_state = self.coord(self.initial_state_image, ACTION,
+                                                                                  view_image)
             self.info_p.append(info), self.reward_p.append(reward), \
             self.Agent_path.append(list(Agent_coord)), self.Enemy_path.append(
                 list(Enemy_coord))
             self.image_p.append(state_image_plus)
-            # By using image_p I can make a loop form consecutive images
+            # By using image_p I can make a loop from consecutive images
         else:
-            state_image_plus = self.image_p[-1]
-            info, reward, state_image_plus, Agent_coord, Enemy_coord = self.coord(state_image_plus, ACTION, vew_image)
+            state_image_plus = self.image_p[-1] # take last image
+            info, reward, state_image_plus, Agent_coord, Enemy_coord, nxt_state = self.coord(state_image_plus, ACTION, view_image)
             self.image_p[-1] = state_image_plus
             self.info_p.append(info), self.reward_p.append(reward), self.Agent_path.append(
                 list(Agent_coord)), self.Enemy_path.append(
                 list(Enemy_coord))
-        return info, reward, Agent_coord, Enemy_coord
+        return info, reward, Agent_coord, Enemy_coord, nxt_state
