@@ -55,14 +55,12 @@ class AgentEnvironment:
         self.client.send(bytes([action, command]))
 
     # Background functions
-    def firstcoord(self, initial_state, action, image, skip_frames, frames_had):
+    def firstcoord(self, initial_state, action, image):
         state_image = np.array(initial_state).reshape(768, 768, 3)
 
         info, reward, next_state = self.step(action)  # do action (new "timestep")
 
-        #if frames_had%skip_frames == 0:
-        #    print("will be analysed")
-            # only get all extra information every 'skip_frames' times
+        # only get all extra information every 'skip_frames' times
         state_image_plus = np.array(next_state).reshape(768, 768, 3)
         stopwatch_coord = Stopwatch()
         stopwatch_coord.start()
@@ -112,16 +110,16 @@ class AgentEnvironment:
             i += 1
 
         stopwatch_coord.stop()
-        print(f"Total time to get coords: {stopwatch_coord.duration}")
+        #print(f"Total time to get coords: {stopwatch_coord.duration}")
 
         # Save image with circles to check correct center of agent
-        #red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
-        #blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
-        #cv2.imwrite(f"circles_img_{random.randrange(50)}.jpg", blue_red_circle_img)
+        red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
+        blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
+        cv2.imwrite(f"circles_img_{random.randrange(50)}.jpg", blue_red_circle_img)
 
 
         if image == True:
-            final = cv2.resize(state_image_plus, (768, 768))
+            final = cv2.resize(state_image_plus, (self.size, self.size))
             # Plot to see where the agents are in the coordenades
             cv2.rectangle(final,
                           tuple(np.array(list(agent_coord)) + [35, 60]),
@@ -138,25 +136,24 @@ class AgentEnvironment:
             PLT.show()
         return info, reward, state_image_plus, agent_coord, enemy_coord, next_state
 
-        #else:
-            # other values will not be used, and were not calculated
-        #    return info, reward, np.array(0), (0, 0), (0, 0), next_state
 
-    def coord(self, initial_state_image, action, image, to_skip, nr_steps):
-        info, reward, state_image_plus, agent_coord, enemy_coord, following_state = self.firstcoord(initial_state_image, action,
-                                                                                   image, to_skip, nr_steps)
+    def coord(self, initial_state_image, action, image):
+        info, reward, state_image_plus, agent_coord, enemy_coord, following_state = self.firstcoord(initial_state_image, action, image)
         return info, reward, state_image_plus, agent_coord, enemy_coord, following_state
 
-    def simpleCoord(self, ACTION, view_image, skip_steps, steps_taken):
+
+    def simpleCoord(self, ACTION, view_image, analyse_frame):
         stopwatch = Stopwatch()
         if len(self.image_p) == 0:
             # start with empty lists and add first elements
             info, reward, state = self.reset()
             self.initial_state_image = np.array(state).reshape(self.size, self.size, 3)
+
             stopwatch.start()
-            info, reward, state_image_plus, agent_coord, enemy_coord, nxt_state = self.coord(self.initial_state_image, ACTION, view_image, skip_steps, steps_taken)
+            info, reward, state_image_plus, agent_coord, enemy_coord, nxt_state = self.coord(self.initial_state_image, ACTION, view_image)
             stopwatch.stop()
-            print(f"Total time for coord init: {stopwatch.duration}")
+            #print(f"Total time for coord init: {stopwatch.duration}")
+
             self.info_p.append(info)
             self.reward_p.append(reward)
             self.agent_path.append(list(agent_coord))
@@ -164,14 +161,23 @@ class AgentEnvironment:
             self.image_p.append(state_image_plus)
             # By using image_p I can make a loop from consecutive images
         else:
-            state_image_plus = self.image_p[-1] # take last image
             stopwatch.start()
-            info, reward, state_image_plus, agent_coord, enemy_coord, nxt_state = self.coord(state_image_plus, ACTION, view_image, skip_steps, steps_taken)
-            stopwatch.stop()
-            print(f"Total time for coord: {stopwatch.duration}")
-            self.image_p[-1] = state_image_plus
-            self.info_p.append(info)
-            self.reward_p.append(reward)
-            self.agent_path.append(list(agent_coord))
-            self.enemy_path.append(list(enemy_coord))
+            if analyse_frame:
+                state_image_plus = self.image_p[-1] # take last image
+                stopwatch.start()
+                info, reward, state_image_plus, agent_coord, enemy_coord, nxt_state = self.coord(state_image_plus, ACTION, view_image)
+                stopwatch.stop()
+                #print(f"Total time for coord: {stopwatch.duration}")
+                self.image_p[-1] = state_image_plus
+                self.info_p.append(info)
+                self.reward_p.append(reward)
+                self.agent_path.append(list(agent_coord))
+                self.enemy_path.append(list(enemy_coord))
+                stopwatch.stop()
+                print(f"total time for current frame (with analysis): {stopwatch.duration}")
+            else:
+                info, reward, nxt_state = self.step(ACTION)
+                stopwatch.stop()
+                print(f"total time for current frame (no analysis): {stopwatch.duration}")
+                return info, reward, (0,0), (0,0), nxt_state # agent and enemy coordinates were not calculated, so return default random value
         return info, reward, agent_coord, enemy_coord, nxt_state
