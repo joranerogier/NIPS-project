@@ -48,6 +48,7 @@ class NeurosmashAgent:
                 target = (reward + self.gamma * np.amax(self.model.predict(next_state))) # here predict returns 2 values, one for action of going left and one for going right
                 print(f"not done yet, target : {target}")
 
+
         print(state)
         target_f = self.model.predict(state)
         target_f[0][action] = target

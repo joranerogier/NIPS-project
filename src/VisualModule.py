@@ -64,20 +64,10 @@ class AgentEnvironment:
         next_state_reformed = np.array(next_state).reshape(768, 768, 3)
         stopwatch_coord = Stopwatch()
         stopwatch_coord.start()
-        '''
-        # too slow!
-        diff = np.subtract(state_image_plus, state_image)
-        diff[:, :, 0] = np.array((pd.DataFrame(np.abs(diff[:, :, 0])) > 120) * diff[:, :, 0] * 10)  # Our agent
-        diff[:, :, 2] = np.array((pd.DataFrame(np.abs(diff[:, :, 2])) > 120) * diff[:, :, 2] * 10)  # Enemy agent
-        agent = diff[:, :, 0]  # Only use the chanel that reflect the agent colour
-        enemy = diff[:, :, 2]
-        indices = np.where(agent != [0])  # Just find where the values are not zero, and we have the position of our agent
-        indices_e = np.where(enemy != [0])  # For each agent
-        agent_coord = (int(np.median(indices[1])), int(np.median(indices[0])))
-        enemy_coord = (int(np.median(indices_e[1])), int(np.median(indices_e[0])))
-        stopwatch_coord.stop()
-        print(f"Total time to get coords: {stopwatch_coord.duration}")
-        '''
+
+        agent_coord = (0, 0) # init
+        enemy_coord = (0, 0) # init
+
         ## find coordinates with help of cv2
         colour_boundaries = [([45, 35, 120], [80, 80, 175]), # blue (actually red, but colours are flipped when image is saved)
                             ([120, 60, 50], [170, 130, 90])] # red (actually blue, but colours are flipped when image is saved)
@@ -106,34 +96,22 @@ class AgentEnvironment:
                 #output = cv2.bitwise_and(img, img, mask = mask)
                 #cv2.imwrite(f"blue_img_{random.randrange(50)}.jpg", output)
 
-
             i += 1
+
+        distance = np.sqrt(np.square(np.array(list(np.array(agent_coord)- np.array(enemy_coord))).sum(axis=0)))
+
+        # Save image with circles to check correct center of agent
+        red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
+        blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
+        cv2.imwrite(f"circles_img_{random.randrange(200)}.jpg", blue_red_circle_img)
+
+
 
         stopwatch_coord.stop()
         #print(f"Total time to get coords: {stopwatch_coord.duration}")
 
-        # Save image with circles to check correct center of agent
-        #red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
-        #blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
-        #cv2.imwrite(f"circles_img_{random.randrange(50)}.jpg", blue_red_circle_img)
 
 
-        if image == True:
-            final = cv2.resize(next_state_reformed, (self.size, self.size))
-            # Plot to see where the agents are in the coordenades
-            cv2.rectangle(final,
-                          tuple(np.array(list(agent_coord)) + [35, 60]),
-                          tuple(np.array(list(agent_coord)) - [35, 60]),
-                          (255, 0, 0), 2)
-            cv2.rectangle(final,
-                          tuple(np.array(list(enemy_coord)) + [35, 60]),
-                          tuple(np.array(list(enemy_coord)) - [35, 60]),
-                          (0, 0, 255), 2)
-            # Displaying the image
-
-            PLT.imshow(final)
-            PLT.rcParams["figure.figsize"] = (5, 5)
-            PLT.show()
         return info, reward, next_state_reformed, agent_coord, enemy_coord, next_state
 
 
@@ -170,10 +148,10 @@ class AgentEnvironment:
                 self.agent_path.append(list(agent_coord))
                 self.enemy_path.append(list(enemy_coord))
                 stopwatch.stop()
-                print(f"total time for current frame (with analysis): {stopwatch.duration}")
+                #print(f"total time for current frame (with analysis): {stopwatch.duration}")
             else:
                 info, reward, nxt_state = self.step(ACTION)
                 stopwatch.stop()
-                print(f"total time for current frame (no analysis): {stopwatch.duration}")
+                #print(f"total time for current frame (no analysis): {stopwatch.duration}")
                 return info, reward, (0, 0), (0, 0), nxt_state # agent and enemy coordinates were not calculated, so return default random value
         return info, reward, agent_coord, enemy_coord, nxt_state
