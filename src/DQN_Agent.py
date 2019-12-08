@@ -25,8 +25,8 @@ class NeurosmashAgent:
 
     def _build_model(self):
         model = Sequential()
-        model.add(Dense(32, activation='relu', input_dim=self.state_size))
-        model.add(Dense(32, activation='relu'))
+        model.add(Dense(132, activation='relu', input_dim=self.state_size))
+        model.add(Dense(132, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
         return model
