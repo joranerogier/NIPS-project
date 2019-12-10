@@ -61,6 +61,7 @@ class NeurosmashAgent:
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
+        print(f"state that the model will use to predict action: {state}")
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])
 
