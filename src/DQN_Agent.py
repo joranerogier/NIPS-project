@@ -41,17 +41,12 @@ class NeurosmashAgent:
         #for state, action, reward, next_state, done in minibatch:
         for state, action, reward, next_state, done in minibatch:
             #print(f"state: {state}, action: {action}, reward: {reward}, next state: {next_state}, done: {done}")
-            if done==1:
+            if done == 1:
                 target = reward # if done
-                print("done: target=reward  ")
             else:
                 # target reward = maximum discounted future reward
                 target = (reward + self.gamma * np.amax(self.model.predict(next_state))) # here predict returns 2 values, one for action of going left and one for going right
-                print(f" {reward} - {self.gamma} - {next_state}")
-                print(f"not done yet, target : {target}")
 
-
-        print(state)
         target_f = self.model.predict(state)
         target_f[0][action] = target
         self.model.fit(state, target_f, epochs=1, verbose=0)
@@ -63,7 +58,6 @@ class NeurosmashAgent:
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
-        print(f"state that the model will use to predict action: {state}")
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])
 

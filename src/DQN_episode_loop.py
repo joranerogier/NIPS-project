@@ -3,6 +3,7 @@ from DQN_Agent import NeurosmashAgent
 
 import numpy as np
 import os
+import random
 
 #from stopwatch import Stopwatch
 
@@ -21,8 +22,6 @@ class EpisodeLoop:
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size)
         self.env = AgentEnvironment(size=768, timescale=10)
-
-
 
         self.games_won = 0
         self.games_lost = 0
@@ -127,13 +126,14 @@ class EpisodeLoop:
 
 
     def main_loop(self):
-
         for e in range(self.episode_count):
             status, next_state = self.init_environment(self.agent)
             small_state = self.get_small_state()
             small_state = np.reshape(small_state, [1, self.state_size])
 
             total_timesteps = 0
+            action = 0
+            execute_action = 0
 
             while self.done == 0:
                 if (total_timesteps % self.skip_frames == 0) or (total_timesteps % self.skip_frames == self.skip_frames - 1):
@@ -141,8 +141,13 @@ class EpisodeLoop:
                 else:
                     evaluate_frame = False
 
-                action = self.agent.act(small_state)
+                if execute_action == 0:
+                    execute_action = random.randrange(1, 10) # execute the action a random amount of times
+                    action = self.agent.act(small_state) # instantiate new action
+
+
                 status, next_state = self.do_action(action)
+                execute_action -= 1
 
                 if status == 1:
                     print(f"Game nr. {e} is finished, \n your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
