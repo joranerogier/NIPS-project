@@ -5,3 +5,5 @@ The regard appears at the end of the game and for that reason, it is very sparse
 The alternative we propose is to define the value of an action in the space (action, state) as a function of winning or losing the game. 
 If the agent wins the actions it took over the game get higher (to the middle point between the previous value and 1) and if he looses then the actions he took over the game get lower (to the middle point between the previous value and 0).
 The mapping of this action-value function is a multilayer dense network that gets trained after every game. 
+
+In a similar way that ants find food, going through paths and reinforcing such paths so that it is easier for others to find it. This is the core idea of labeling the state variables in that way. So that every time the agent finds himself in a similar position he will get more reward out of actions that lead to winning. 
