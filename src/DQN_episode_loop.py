@@ -15,7 +15,7 @@ class EpisodeLoop:
         self.state_size = 5
         self.max_distance = 600
         self.show_images = False
-        self.skip_frames = 15 # faster and remember less similar states
+        self.skip_frames = 5 # faster and remember less similar states
         self.action_size = 3
         self.episode_count = 1000
         self.batch_size = 32
