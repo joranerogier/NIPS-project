@@ -161,9 +161,9 @@ class EpisodeLoop:
                     if self.won_now == False:
                         print("comes here")
                         self.total_reward -= 10
-                        self.total_reward += (100/total_timesteps)
+                        self.total_reward += (50/total_timesteps)
                     else:
-                        self.total_reward += (100/total_timesteps) # maybe only if you won
+                        self.total_reward += (50/total_timesteps) # maybe only if you won
 
                     print(f"Game nr. {e} is finished, \n you won: {self.won_now} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
 
