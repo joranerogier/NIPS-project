@@ -12,12 +12,12 @@ class EpisodeLoop:
         pass
 
     def __init__(self):
-        self.state_size = 11
+        self.state_size = 5
         self.max_distance = 600
         self.show_images = False
         self.skip_frames = 15 # faster and remember less similar states
         self.action_size = 3
-        self.episode_count = 50
+        self.episode_count = 1000
         self.batch_size = 32
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size)
@@ -35,6 +35,7 @@ class EpisodeLoop:
         self.relative_pos_enemy = [0, 0]
         self.distances = []
         self.done = 0
+        self.negative_value = 10
 
         self.agent_coord_x = 0
         self.agent_coord_y = 0
@@ -52,12 +53,12 @@ class EpisodeLoop:
                                           self.agent_coord_y,
                                           self.enemy_coord_x,
                                           self.enemy_coord_y,
-                                          self.agent_dir_x,
-                                          self.agent_dir_y,
-                                          self.rel_pos_enemy_x,
-                                          self.rel_pos_enemy_y,
-                                          self.enemy_dir_x,
-                                          self.enemy_dir_y,
+                                          #self.agent_dir_x,
+                                          #self.agent_dir_y,
+                                          #self.rel_pos_enemy_x,
+                                          #self.rel_pos_enemy_y,
+                                          #self.enemy_dir_x,
+                                          #self.enemy_dir_y,
                                           self.done]],
                                           [1, self.state_size])
 
@@ -96,7 +97,8 @@ class EpisodeLoop:
             self.distance = np.sqrt(np.square(np.array(list(np.array(agent_coord)- np.array(enemy_coord))).sum(axis=0)))
             self.agent_direction, self.enemy_direction  = self.direction(self.env.agent_path, self.env.enemy_path)
 
-        self.compute_reward(reward, distance)
+        #self.compute_reward(reward, distance)
+        self.total_reward += reward
         self.rel_pos_enemy = np.array(enemy_coord) - np.array(agent_coord)
 
         return info, following_state
@@ -134,6 +136,8 @@ class EpisodeLoop:
             total_timesteps = 0
             action = 0
             execute_action = 0
+            self.total_reward = 0
+            self.won_now = False
 
             while self.done == 0:
                 if (total_timesteps % self.skip_frames == 0) or (total_timesteps % self.skip_frames == self.skip_frames - 1):
@@ -142,7 +146,7 @@ class EpisodeLoop:
                     evaluate_frame = False
 
                 if execute_action == 0:
-                    execute_action = random.randrange(1, 10) # execute the action a random amount of times
+                    execute_action = 3#random.randrange(1, 10) # execute the action a random amount of times
                     action = self.agent.act(small_state) # instantiate new action
 
 
@@ -150,8 +154,18 @@ class EpisodeLoop:
                 execute_action -= 1
 
                 if status == 1:
-                    print(f"Game nr. {e} is finished, \n your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
                     self.done = 1
+
+                    print(self.won_now)
+
+                    if self.won_now == False:
+                        print("comes here")
+                        self.total_reward -= 10
+                        self.total_reward += (100/total_timesteps)
+                    else:
+                        self.total_reward += (100/total_timesteps) # maybe only if you won
+
+                    print(f"Game nr. {e} is finished, \n you won: {self.won_now} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
 
 
                 done_list = [self.done]
@@ -170,7 +184,7 @@ class EpisodeLoop:
 
             if len(self.agent.memory) > self.batch_size:
                 self.agent.train(self.batch_size)
-                print("train")
+
 
             if e % 50 == 0:
                 self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")

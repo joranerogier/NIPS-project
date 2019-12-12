@@ -17,6 +17,7 @@ class AgentEnvironment:
         self.reward_p = []
         self.enemy_path = []
         self.agent_path = []
+        
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ip = ip
@@ -101,9 +102,9 @@ class AgentEnvironment:
         distance = np.sqrt(np.square(np.array(list(np.array(agent_coord)- np.array(enemy_coord))).sum(axis=0)))
 
         # Save image with circles to check correct center of agent
-        red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
-        blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
-        cv2.imwrite(f"circles_img_{random.randrange(200)}.jpg", blue_red_circle_img)
+        #red_circle_img = cv2.circle(img, agent_coord, 20, (0, 0, 255), 2)
+        #blue_red_circle_img = cv2.circle(red_circle_img, enemy_coord, 20, (255, 0, 0), 2)
+        #cv2.imwrite(f"circles_img_{random.randrange(200)}.jpg", blue_red_circle_img)
 
 
 
