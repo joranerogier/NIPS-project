@@ -17,8 +17,10 @@ class EpisodeLoop:
         self.show_images = False
         self.skip_frames = 1 # faster and remember less similar states
         self.action_size = 3
-        self.episode_count = 1000
+        self.episode_count = 500
         self.batch_size = 128
+        self.nr_action_executions = 3
+
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size, batch_size=self.batch_size)
         self.env = AgentEnvironment(size=768, timescale=10)
@@ -66,6 +68,8 @@ class EpisodeLoop:
         if not os.path.exists(self.model_output_dir):
             os.makedirs(self.model_output_dir)
 
+    # is not called anymore, we don't want to use location as reward,
+    # since the enemy always follows the agent on its own.
     def compute_reward(self, standard_reward, distance):
         distance_reward = (self.max_distance - distance) / self.max_distance
         complete_reward = (distance_reward + standard_reward) / 20
@@ -152,7 +156,7 @@ class EpisodeLoop:
                     evaluate_frame = False
 
                 if execute_action == 0:
-                    execute_action = 3#random.randrange(1, 10) # execute the action a random amount of times
+                    execute_action = self.nr_action_executions #random.randrange(1, 10) # execute the action a random amount of times
                     action = self.agent.act(small_state) # instantiate new action
 
 
