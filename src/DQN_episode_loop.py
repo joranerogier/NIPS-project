@@ -20,8 +20,8 @@ class EpisodeLoop:
         self.episode_count = 1000
         self.batch_size = 128
         self.agent = NeurosmashAgent(state_size=self.state_size,
-                                     action_size=self.action_size)
-        self.env = AgentEnvironment(size=768, timescale=10, batch_size=self.batch_size)
+                                     action_size=self.action_size, batch_size=self.batch_size)
+        self.env = AgentEnvironment(size=768, timescale=10)
 
         self.games_won = 0
         self.games_lost = 0
