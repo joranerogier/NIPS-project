@@ -195,7 +195,7 @@ class EpisodeLoop:
             self.total_rewards.append(self.total_reward)
 
             if len(self.agent.memory) > self.batch_size:
-                self.agent.train(self.batch_size)
+                self.agent.train()
 
 
             if e % 50 == 0:
