@@ -5,7 +5,7 @@ import numpy as np
 import os
 import random
 
-#from stopwatch import Stopwatch
+from stopwatch import Stopwatch
 
 class EpisodeLoop:
     def __init__(self):
@@ -41,8 +41,8 @@ class EpisodeLoop:
         self.agent_coord_y = 0
         self.enemy_coord_x = 0
         self.enemy_coord_y = 0
-        self.agent_dir_x  = 0
-        self.agent_dir_y  = 0
+        self.agent_dir_x = 0
+        self.agent_dir_y = 0
         self.rel_pos_enemy_x = 0
         self.rel_pos_enemy_y = 0
         self.enemy_dir_x = 0
@@ -85,9 +85,12 @@ class EpisodeLoop:
         self.agent_trajectories.append(list(agent_coord))
         self.enemy_trajectories.append(list(enemy_coord))
 
-        if reward == 10: # our agent won
+        if info == 0 & reward == 10: # our agent won
             self.games_won += 1
             self.won_now = True
+        elif info == 0 & reward == 0:
+            self.games_lost += 1
+
 
         if len(self.env.agent_path) < 2:
             distance = 500 # Initial distance, only for initialisation
@@ -128,6 +131,9 @@ class EpisodeLoop:
 
 
     def main_loop(self):
+        stopwatch_main = Stopwatch()
+        stopwatch_main.start()
+
         for e in range(self.episode_count):
             status, next_state = self.init_environment(self.agent)
             small_state = self.get_small_state()
@@ -165,7 +171,12 @@ class EpisodeLoop:
                     else:
                         self.total_reward += (50/total_timesteps) # maybe only if you won
 
-                    print(f"Game nr. {e} is finished, \n you won: {self.won_now} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
+                    string_game_result = ""
+                    if self.won_now == True:
+                        string_game_result = "you won!"
+                    else:
+                        string_game_result = "you lost :()"
+                    print(f"Game nr. {e} is finished, \n {string_game_result} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
 
 
                 done_list = [self.done]
@@ -189,8 +200,8 @@ class EpisodeLoop:
             if e % 50 == 0:
                 self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")
 
-
-        print(f"finished all episodes. \nTotal games won: {self.games_won} \nTotal games lost: {self.games_lost}")
+        stopwatch_main.stop()
+        print(f"finished all episodes (in {stopwatch_main.duration}). \nTotal games won: {self.games_won} \nTotal games lost: {self.games_lost}")
 
 
 if __name__ == '__main__':
