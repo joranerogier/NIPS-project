@@ -11,7 +11,7 @@ class NeurosmashAgent:
 
     """ Agent trained using DQN. """
 
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, batch_size):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000) # replay buffer
@@ -20,13 +20,14 @@ class NeurosmashAgent:
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
         self.learning_rate = 0.001
+        self.batch_size = batch_size
         self.model = self._build_model()
 
 
     def _build_model(self):
         model = Sequential()
-        model.add(Dense(32, activation='relu', input_dim=self.state_size))
-        model.add(Dense(32, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
+        model.add(Dense(self.batch_size, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
         return model
@@ -36,8 +37,8 @@ class NeurosmashAgent:
         self.memory.append((state, action, reward, next_state, done))
 
 
-    def train(self, batch_size):
-        minibatch = random.sample(self.memory, batch_size)
+    def train(self):
+        minibatch = random.sample(self.memory, self.batch_size)
         #for state, action, reward, next_state, done in minibatch:
         for state, action, reward, next_state, done in minibatch:
             #print(f"state: {state}, action: {action}, reward: {reward}, next state: {next_state}, done: {done}")

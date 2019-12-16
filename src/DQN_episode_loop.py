@@ -15,13 +15,13 @@ class EpisodeLoop:
         self.state_size = 5
         self.max_distance = 600
         self.show_images = False
-        self.skip_frames = 5 # faster and remember less similar states
+        self.skip_frames = 1 # faster and remember less similar states
         self.action_size = 3
         self.episode_count = 1000
-        self.batch_size = 32
+        self.batch_size = 128
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size)
-        self.env = AgentEnvironment(size=768, timescale=10)
+        self.env = AgentEnvironment(size=768, timescale=10, batch_size=self.batch_size)
 
         self.games_won = 0
         self.games_lost = 0
@@ -162,10 +162,7 @@ class EpisodeLoop:
                 if status == 1:
                     self.done = 1
 
-                    print(self.won_now)
-
                     if self.won_now == False:
-                        print("comes here")
                         self.total_reward -= 10
                         self.total_reward += (50/total_timesteps)
                     else:
@@ -175,7 +172,7 @@ class EpisodeLoop:
                     if self.won_now == True:
                         string_game_result = "you won!"
                     else:
-                        string_game_result = "you lost :()"
+                        string_game_result = "you lost"
                     print(f"Game nr. {e} is finished, \n {string_game_result} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
 
 
