@@ -17,8 +17,8 @@ class EpisodeLoop:
         self.show_images = False
         self.skip_frames = 1 # faster and remember less similar states # was 5
         self.action_size = 3
-        self.episode_count = 250
-        self.batch_size = 256
+        self.episode_count = 300
+        self.batch_size = 128
         self.nr_action_executions = 3
 
         self.agent = NeurosmashAgent(state_size=self.state_size,
@@ -92,7 +92,7 @@ class EpisodeLoop:
         if reward == 10: # our agent won
             self.games_won += 1
             self.won_now = True
-        elif info == 1 & reward == 0:
+        elif (info == 1) & (reward == 0):
             self.games_lost += 1
 
 
@@ -137,6 +137,8 @@ class EpisodeLoop:
     def main_loop(self):
         stopwatch_main = Stopwatch()
         stopwatch_main.start()
+        self.games_lost = 0
+        self.games_won = 0
 
         for e in range(self.episode_count):
             status, next_state = self.init_environment(self.agent)
@@ -148,8 +150,7 @@ class EpisodeLoop:
             execute_action = 0
             self.total_reward = 0
             self.won_now = False
-            self.games_lost = 0
-            self.games_won = 0
+
 
             while self.done == 0:
                 if (total_timesteps % self.skip_frames == 0) or (total_timesteps % self.skip_frames == self.skip_frames - 1):
