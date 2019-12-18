@@ -15,10 +15,10 @@ class EpisodeLoop:
         self.state_size = 5
         self.max_distance = 600
         self.show_images = False
-        self.skip_frames = 1 # faster and remember less similar states
+        self.skip_frames = 1 # faster and remember less similar states # was 5
         self.action_size = 3
-        self.episode_count = 500
-        self.batch_size = 128
+        self.episode_count = 250
+        self.batch_size = 256
         self.nr_action_executions = 3
 
         self.agent = NeurosmashAgent(state_size=self.state_size,
@@ -37,7 +37,7 @@ class EpisodeLoop:
         self.relative_pos_enemy = [0, 0]
         self.distances = []
         self.done = 0
-        self.negative_value = 10
+        self.negative_value = 1
 
         self.agent_coord_x = 0
         self.agent_coord_y = 0
@@ -89,10 +89,10 @@ class EpisodeLoop:
         self.agent_trajectories.append(list(agent_coord))
         self.enemy_trajectories.append(list(enemy_coord))
 
-        if info == 0 & reward == 10: # our agent won
+        if reward == 10: # our agent won
             self.games_won += 1
             self.won_now = True
-        elif info == 0 & reward == 0:
+        elif info == 1 & reward == 0:
             self.games_lost += 1
 
 
@@ -148,6 +148,8 @@ class EpisodeLoop:
             execute_action = 0
             self.total_reward = 0
             self.won_now = False
+            self.games_lost = 0
+            self.games_won = 0
 
             while self.done == 0:
                 if (total_timesteps % self.skip_frames == 0) or (total_timesteps % self.skip_frames == self.skip_frames - 1):
@@ -165,18 +167,19 @@ class EpisodeLoop:
 
                 if status == 1:
                     self.done = 1
-
-                    if self.won_now == False:
-                        self.total_reward -= 10
-                        self.total_reward += (50/total_timesteps)
-                    else:
-                        self.total_reward += (50/total_timesteps) # maybe only if you won
-
-                    string_game_result = ""
-                    if self.won_now == True:
+                    if self.won_now:
+                         # maybe only if you won
                         string_game_result = "you won!"
+                        if total_timesteps <= 400:
+                            self.total_reward += 5
                     else:
+                        self.total_reward -= self.negative_value
+                        #self.total_reward += (50/total_timesteps)
                         string_game_result = "you lost"
+                        #if total_timesteps <= 400:
+                        #    self.total_reward += 0.1
+
+
                     print(f"Game nr. {e} is finished, \n {string_game_result} - your final reward is: {self.total_reward}, duration was {total_timesteps} timesteps")
 
 

@@ -17,7 +17,7 @@ class AgentEnvironment:
         self.reward_p = []
         self.enemy_path = []
         self.agent_path = []
-        
+
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ip = ip
@@ -63,8 +63,8 @@ class AgentEnvironment:
 
         # only get all extra information every 'skip_frames' times
         next_state_reformed = np.array(next_state).reshape(768, 768, 3)
-        stopwatch_coord = Stopwatch()
-        stopwatch_coord.start()
+        #stopwatch_coord = Stopwatch()
+        #stopwatch_coord.start()
 
         agent_coord = (0, 0) # init
         enemy_coord = (0, 0) # init
@@ -108,7 +108,7 @@ class AgentEnvironment:
 
 
 
-        stopwatch_coord.stop()
+        #stopwatch_coord.stop()
         #print(f"Total time to get coords: {stopwatch_coord.duration}")
 
 
