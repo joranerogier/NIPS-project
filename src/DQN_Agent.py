@@ -19,7 +19,7 @@ class NeurosmashAgent:
         self.epsilon = 1.0 # exploration rate
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
-        self.learning_rate = 0.001
+        self.learning_rate = 0.005 #1
         self.batch_size = batch_size
         self.model = self._build_model()
 

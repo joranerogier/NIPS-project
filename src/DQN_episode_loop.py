@@ -4,41 +4,65 @@ from DQN_Agent import NeurosmashAgent
 import numpy as np
 import os
 import random
-
+from matplotlib import pyplot as plt
 from stopwatch import Stopwatch
+from check_dir import check_dir
+
 
 class EpisodeLoop:
     def __init__(self):
         pass
 
     def __init__(self):
+        # set directory where plos of rewards will be saved
+        self.reward_plot_dir = "output/reward_plots/"
+        check_dir(self.reward_plot_dir)
+        self.reward_plot_path = f"{self.reward_plot_dir}test_plots.png"
+
+        # set variables about the states / action / features
         self.state_size = 5
-        self.max_distance = 600
-        self.show_images = False
-        self.skip_frames = 1 # faster and remember less similar states # was 5
         self.action_size = 3
+        self.nr_action_executions = 3
+        self.max_distance = 600
+
+        # set variables for all episodes
+        self.bin_size = 25 # for the reward plots
+        self.skip_frames = 1 # faster and remember less similar states # was 5
+        self.show_images = False
         self.episode_count = 300
         self.batch_size = 128
-        self.nr_action_executions = 3
 
+        # set values of rewards
+        self.extra_win_reward = 0 # reward for winning is 10 + extra_win_reward
+        self.negative_value = 1
+
+        # initialize agent and environment
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size, batch_size=self.batch_size)
         self.env = AgentEnvironment(size=768, timescale=10)
 
+        # initialize variables used over all episode loops
         self.games_won = 0
         self.games_lost = 0
-        self.won_now = False
-        self.agent_trajectories = []
-        self.enemy_trajectories = []
-        self.enemy_direction = [-1, 0]
-        self.agent_direction = [1, 0]
+
+        # initialize rewards variables
         self.total_reward = 0
         self.total_rewards = []
+
+
+        self.model_output_dir = "output/model_output/"
+        check_dir(self.model_output_dir)
+
+        # initialize variables used per episode-loop
+        # now only for the very first episode
+        self.won_now = False
+        self.enemy_direction = [-1, 0]
+        self.agent_direction = [1, 0]
+        self.agent_trajectories = []
+        self.enemy_trajectories = []
         self.relative_pos_enemy = [0, 0]
         self.distances = []
         self.done = 0
-        self.negative_value = 1
-
         self.agent_coord_x = 0
         self.agent_coord_y = 0
         self.enemy_coord_x = 0
@@ -64,9 +88,7 @@ class EpisodeLoop:
                                           self.done]],
                                           [1, self.state_size])
 
-        self.model_output_dir = "output/model_output/"
-        if not os.path.exists(self.model_output_dir):
-            os.makedirs(self.model_output_dir)
+
 
     # is not called anymore, we don't want to use location as reward,
     # since the enemy always follows the agent on its own.
@@ -91,6 +113,7 @@ class EpisodeLoop:
 
         if reward == 10: # our agent won
             self.games_won += 1
+            self.total_reward += self.extra_win_reward # extra winning reward
             self.won_now = True
         elif (info == 1) & (reward == 0):
             self.games_lost += 1
@@ -171,8 +194,8 @@ class EpisodeLoop:
                     if self.won_now:
                          # maybe only if you won
                         string_game_result = "you won!"
-                        if total_timesteps <= 400:
-                            self.total_reward += 5
+                        #if total_timesteps <= 400:
+                        #    self.total_reward += 5
                     else:
                         self.total_reward -= self.negative_value
                         #self.total_reward += (50/total_timesteps)
@@ -201,9 +224,54 @@ class EpisodeLoop:
             if len(self.agent.memory) > self.batch_size:
                 self.agent.train()
 
-
             if e % 50 == 0:
                 self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")
+
+            # plot and save rewards until now
+            if (e % self.bin_size == 0) & (e != 0):
+                x_data_per_episode = list(range(e + 1))
+                y_data_per_episode = self.total_rewards
+                print(x_data_per_episode)
+                print(y_data_per_episode)
+                y_sums = []
+                y_averages = []
+                x_sums_averages = list(range(int(e/self.bin_size)))
+
+                bins = int(e/self.bin_size)
+
+                for i in range(bins):
+                    part = y_data_per_episode[(i*self.bin_size): ((i*self.bin_size)+self.bin_size)]
+                    sum_part = sum(part)
+                    y_sums.append(sum_part)
+                    average_part = sum_part / len(part)
+                    y_averages.append(average_part)
+
+
+                fig = plt.figure()
+                ax1 = fig.add_subplot(1, 3, 1)
+                ax2 = fig.add_subplot(1, 3, 2)
+                ax3 = fig.add_subplot(1, 3, 3)
+
+                ax1.scatter(x_data_per_episode, y_data_per_episode, label='data')
+                ax1.set_xlabel("episode nr.")
+                ax1.set_ylabel("total reward")
+                ax1.set_title('total reward per episode')
+
+                ax2.bar(x_sums_averages, y_sums, label='data')
+                ax2.set_xlabel("batch nr.")
+                ax2.set_ylabel("sum reward")
+                ax2.set_title('total reward per batch of size 4')
+
+                ax3.bar(x_sums_averages, y_averages, label='data')
+                ax3.set_xlabel("batch nr.")
+                ax3.set_ylabel("sum reward")
+                ax3.set_title('total reward per batch of size 4')
+
+                fig.tight_layout()
+
+                fig.savefig(self.reward_plot_path)
+
+
 
         stopwatch_main.stop()
         print(f"finished all episodes (in {stopwatch_main.duration}). \nTotal games won: {self.games_won} \nTotal games lost: {self.games_lost}")
