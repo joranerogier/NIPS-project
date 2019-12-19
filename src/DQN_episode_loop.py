@@ -246,6 +246,9 @@ class EpisodeLoop:
                     average_part = sum_part / len(part)
                     y_averages.append(average_part)
 
+                print(x_sums_averages)
+                print(y_sums)
+                print(y_averages)
 
                 fig = plt.figure()
                 ax1 = fig.add_subplot(1, 3, 1)
@@ -264,7 +267,7 @@ class EpisodeLoop:
 
                 ax3.bar(x_sums_averages, y_averages, label='data')
                 ax3.set_xlabel("batch nr.")
-                ax3.set_ylabel("sum reward")
+                ax3.set_ylabel("average reward")
                 ax3.set_title('total reward per batch of size 4')
 
                 fig.tight_layout()
