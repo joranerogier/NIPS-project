@@ -1,6 +1,8 @@
 from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import LSTM
+from keras.layers import TimeDistributedDense
 import random
 from keras.optimizers import SGD
 import numpy as np
@@ -14,7 +16,7 @@ class NeurosmashAgent:
     def __init__(self, state_size, action_size, batch_size):
         self.model_name = "first_model.hdf5"
         self.model_weights_path = f"output/model_output/{self.model_name}"
-        
+
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000) # replay buffer
@@ -29,11 +31,18 @@ class NeurosmashAgent:
 
     def _build_model(self):
         model = Sequential()
+        #model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
+        #model.add(Dense(self.batch_size, activation='relu'))
+        #model.add(Dense(self.batch_size, activation='relu')) # extra layer
+        #model.add(Dense(self.action_size, activation='linear'))
+        #model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
+        model = Sequential()
         model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
         model.add(Dense(self.batch_size, activation='relu'))
-        #model.add(Dense(self.batch_size, activation='relu')) # extra layer
-        model.add(Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
+        model.add(TimeDistributedDense(10)) # output shape: (nb_samples, timesteps, 5)
+        model.add(LSTM(10, return_sequences=True)) # output shape: (nb_samples, 10))
+        optimizer = RMSprop(lr=0.001,clipnorm=10)
+        model.compile(optimizer=optimizer, loss='mse')
         return model
 
 

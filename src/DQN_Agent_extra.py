@@ -13,13 +13,13 @@ class NeurosmashAgent:
 
     def __init__(self, state_size, action_size, batch_size):
         self.model_name = "first_model.hdf5"
-        self.model_weights_path = f"output/model_output/{self.model_name}"
-        
+        self.weights_path = f"output/model_output/{self.model_name}"
+
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000) # replay buffer
         self.gamma = 0.95 # discount factor / decay rate --> SLM Lab  to fit this properly?
-        self.epsilon = 1.0 # exploration rate
+        self.epsilon = 0.5 # exploration rate
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
         self.learning_rate = 0.001 #1
@@ -34,6 +34,7 @@ class NeurosmashAgent:
         #model.add(Dense(self.batch_size, activation='relu')) # extra layer
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
+        model.load_weights(self.weights_path)
         return model
 
 

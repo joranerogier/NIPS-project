@@ -1,5 +1,5 @@
 from VisualModule import AgentEnvironment
-from DQN_Agent import NeurosmashAgent
+from DQN_Agent_extra import NeurosmashAgent
 
 import numpy as np
 import os
@@ -14,9 +14,6 @@ class EpisodeLoop:
         pass
 
     def __init__(self):
-        self.model_name = "first_model.hdf5"
-        self.model_weights_path = f"output/model_output/{self.model_name}"
-
         # set directory where plos of rewards will be saved
         self.reward_plot_dir = "output/reward_plots/"
         check_dir(self.reward_plot_dir)
@@ -36,7 +33,7 @@ class EpisodeLoop:
         self.batch_size = 128
 
         # set values of rewards
-        self.extra_win_reward = 5 # reward for winning is 10 + extra_win_reward
+        self.extra_win_reward = 8 # reward for winning is 10 + extra_win_reward
         self.negative_value = 1
 
         # initialize agent and environment
@@ -196,8 +193,12 @@ class EpisodeLoop:
                     if self.won_now:
                          # maybe only if you won
                         string_game_result = "you won!"
-                        if total_timesteps <= 600:
+                        if total_timesteps <= 450:
                             self.total_reward += self.extra_win_reward
+                        elif total_timesteps >= 1000:
+                            self.total_reward -= 2
+                        elif total_timesteps >= 1500:
+                            self.total_reward -= 7
                     else:
                         self.total_reward -= self.negative_value
                         #self.total_reward += (50/total_timesteps)
@@ -279,7 +280,7 @@ class EpisodeLoop:
 
 
         stopwatch_main.stop()
-        print(f"finished all episodes (in {stopwatch_main.duration}). \nTotal games won: {self.games_won} \nTotal games lost: {self.games_lost}")
+        print(f"finished all episodes (in {int(stopwatch_main.duration)}). \nTotal games won: {self.games_won} \nTotal games lost: {self.games_lost}")
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 from VisualModule import AgentEnvironment
-from DQN_Agent import NeurosmashAgent
+from DQN_Agent_test import NeurosmashAgent
 
+import csv
 import numpy as np
 import os
 import random
@@ -14,13 +15,10 @@ class EpisodeLoop:
         pass
 
     def __init__(self):
-        self.model_name = "first_model.hdf5"
-        self.model_weights_path = f"output/model_output/{self.model_name}"
-
         # set directory where plos of rewards will be saved
-        self.reward_plot_dir = "output/reward_plots/"
-        check_dir(self.reward_plot_dir)
-        self.reward_plot_path = f"{self.reward_plot_dir}test_plots_r10_l1_b128.png"
+        self.reward_csv_dir = "output/reward_csv/"
+        check_dir(self.reward_csv_dir)
+        self.reward_csv_path = f"{self.reward_csv_dir}model3.csv" # csv with rewards and nr of steps per episode
 
         # set variables about the states / action / features
         self.state_size = 5
@@ -30,18 +28,22 @@ class EpisodeLoop:
 
         # set variables for all episodes
         self.bin_size = 25 # for the reward plots
-        self.skip_frames = 1 # faster and remember less similar states # was 5
+        self.skip_frames = 5 # faster and remember less similar states # was 5
         self.show_images = False
-        self.episode_count = 300
+        self.episode_count = 100
         self.batch_size = 128
 
         # set values of rewards
-        self.extra_win_reward = 5 # reward for winning is 10 + extra_win_reward
+        self.extra_win_reward = 0 # reward for winning is 10 + extra_win_reward
         self.negative_value = 1
+
+        self.model_name = "model3.hdf5"
+        self.model_weights = f"output/model_output/{self.model_name}"
 
         # initialize agent and environment
         self.agent = NeurosmashAgent(state_size=self.state_size,
-                                     action_size=self.action_size, batch_size=self.batch_size)
+                                     action_size=self.action_size, batch_size=self.batch_size,
+                                     weights_path=self.model_weights)
         self.env = AgentEnvironment(size=768, timescale=1)
 
         # initialize variables used over all episode loops
@@ -53,8 +55,6 @@ class EpisodeLoop:
         self.total_rewards = []
 
 
-        self.model_output_dir = "output/model_output/"
-        check_dir(self.model_output_dir)
 
         # initialize variables used per episode-loop
         # now only for the very first episode
@@ -90,15 +90,6 @@ class EpisodeLoop:
                                           #self.enemy_dir_y,
                                           self.done]],
                                           [1, self.state_size])
-
-
-
-    # is not called anymore, we don't want to use location as reward,
-    # since the enemy always follows the agent on its own.
-    def compute_reward(self, standard_reward, distance):
-        distance_reward = (self.max_distance - distance) / self.max_distance
-        complete_reward = (distance_reward + standard_reward) / 20
-        self.total_reward += complete_reward
 
 
     def direction(self, agent_path, enemy_path):
@@ -160,6 +151,11 @@ class EpisodeLoop:
 
 
     def main_loop(self):
+
+        with open(self.reward_csv_path, mode="w") as f:
+            writer = csv.writer(f, delimiter=",", )
+            writer.writerow(["episode nr", "reward", "timesteps"])
+
         stopwatch_main = Stopwatch()
         stopwatch_main.start()
         self.games_lost = 0
@@ -200,7 +196,7 @@ class EpisodeLoop:
                             self.total_reward += self.extra_win_reward
                     else:
                         self.total_reward -= self.negative_value
-                        #self.total_reward += (50/total_timesteps)
+                        self.total_reward += (50/total_timesteps)
                         string_game_result = "you lost"
                         #if total_timesteps <= 400:
                         #    self.total_reward += 0.1
@@ -215,67 +211,13 @@ class EpisodeLoop:
 
                 small_state = np.reshape(small_state, [1, self.state_size])
 
-                if (total_timesteps % self.skip_frames == 0):
-                    self.agent.remember(small_state, action, self.total_reward, next_small_state, list(done_list))
-
                 small_state = next_small_state # new small state
                 total_timesteps += 1
 
             self.total_rewards.append(self.total_reward)
-
-            if len(self.agent.memory) > self.batch_size:
-                self.agent.train()
-
-            if e % 50 == 0:
-                self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")
-
-            # plot and save rewards until now
-            if (e % self.bin_size == 0) & (e != 0):
-                x_data_per_episode = list(range(e + 1))
-                y_data_per_episode = self.total_rewards
-                print(x_data_per_episode)
-                print(y_data_per_episode)
-                y_sums = []
-                y_averages = []
-                x_sums_averages = list(range(int(e/self.bin_size)))
-
-                bins = int(e/self.bin_size)
-
-                for i in range(bins):
-                    part = y_data_per_episode[(i*self.bin_size): ((i*self.bin_size)+self.bin_size)]
-                    sum_part = sum(part)
-                    y_sums.append(sum_part)
-                    average_part = sum_part / len(part)
-                    y_averages.append(average_part)
-
-                print(x_sums_averages)
-                print(y_sums)
-                print(y_averages)
-
-                fig = plt.figure()
-                ax1 = fig.add_subplot(1, 3, 1)
-                ax2 = fig.add_subplot(1, 3, 2)
-                ax3 = fig.add_subplot(1, 3, 3)
-
-                ax1.scatter(x_data_per_episode, y_data_per_episode, label='data')
-                ax1.set_xlabel("episode nr.")
-                ax1.set_ylabel("total reward")
-                ax1.set_title('total reward per episode')
-
-                ax2.bar(x_sums_averages, y_sums, label='data')
-                ax2.set_xlabel("batch nr.")
-                ax2.set_ylabel("sum reward")
-                ax2.set_title('total reward per batch of size 4')
-
-                ax3.bar(x_sums_averages, y_averages, label='data')
-                ax3.set_xlabel("batch nr.")
-                ax3.set_ylabel("average reward")
-                ax3.set_title('total reward per batch of size 4')
-
-                fig.tight_layout()
-
-                fig.savefig(self.reward_plot_path)
-
+            with open(self.reward_csv_path, mode="a") as f:
+                writer = csv.writer(f, delimiter=",", )
+                writer.writerow([e, self.total_reward, total_timesteps])
 
 
         stopwatch_main.stop()

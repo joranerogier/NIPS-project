@@ -1,5 +1,5 @@
 from VisualModule import AgentEnvironment
-from DQN_Agent import NeurosmashAgent
+from DQN_Agent_LSTM import NeurosmashAgent
 
 import numpy as np
 import os
