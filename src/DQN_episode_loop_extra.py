@@ -29,7 +29,7 @@ class EpisodeLoop:
         self.bin_size = 25 # for the reward plots
         self.skip_frames = 1 # faster and remember less similar states # was 5
         self.show_images = False
-        self.episode_count = 300
+        self.episode_count = 51
         self.batch_size = 128
 
         # set values of rewards
@@ -39,7 +39,7 @@ class EpisodeLoop:
         # initialize agent and environment
         self.agent = NeurosmashAgent(state_size=self.state_size,
                                      action_size=self.action_size, batch_size=self.batch_size)
-        self.env = AgentEnvironment(size=768, timescale=1)
+        self.env = AgentEnvironment(size=768, timescale=3)
 
         # initialize variables used over all episode loops
         self.games_won = 0
@@ -228,7 +228,8 @@ class EpisodeLoop:
                 self.agent.train()
 
             if e % 50 == 0:
-                self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")
+                #self.agent.save(self.model_output_dir + "weights_"+ '{:04d}'.format(e) + ".hdf5")
+                self.agent.save(self.model_output_dir + "last_model_ep300.hdf5")
 
             # plot and save rewards until now
             if (e % self.bin_size == 0) & (e != 0):

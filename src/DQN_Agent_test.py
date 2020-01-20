@@ -1,6 +1,7 @@
 from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 import random
 from keras.optimizers import SGD
 import numpy as np
@@ -21,10 +22,24 @@ class NeurosmashAgent:
         model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
         model.add(Dense(self.batch_size, activation='relu'))
         #model.add(Dense(self.batch_size, activation='relu')) # extra layer
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
         model.load_weights(self.weights_path)
         return model
+
+    '''
+    def _build_model(self):
+        model = Sequential()
+        model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
+        model.add(Dense(self.batch_size, activation='relu'))
+        #model.add(Dense(self.batch_size, activation='relu')) # extra layer
+        model.add(Dense(self.action_size, activation='linear'))
+        model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
+        model.load_weights(self.weights_path)
+        return model
+    '''
 
     def act(self, state):
         act_values = self.model.predict(state)

@@ -14,13 +14,13 @@ class EpisodeLoop:
         pass
 
     def __init__(self):
-        self.model_name = "first_model.hdf5"
+        self.model_name = "model_5layers.hdf5"
         self.model_weights_path = f"output/model_output/{self.model_name}"
 
         # set directory where plos of rewards will be saved
         self.reward_plot_dir = "output/reward_plots/"
         check_dir(self.reward_plot_dir)
-        self.reward_plot_path = f"{self.reward_plot_dir}test_plots_r10_l1_b128.png"
+        self.reward_plot_path = f"{self.reward_plot_dir}test_plots_extra_layers.png"
 
         # set variables about the states / action / features
         self.state_size = 5
@@ -32,7 +32,7 @@ class EpisodeLoop:
         self.bin_size = 25 # for the reward plots
         self.skip_frames = 1 # faster and remember less similar states # was 5
         self.show_images = False
-        self.episode_count = 300
+        self.episode_count = 401
         self.batch_size = 128
 
         # set values of rewards

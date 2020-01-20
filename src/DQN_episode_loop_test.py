@@ -18,7 +18,7 @@ class EpisodeLoop:
         # set directory where plos of rewards will be saved
         self.reward_csv_dir = "output/reward_csv/"
         check_dir(self.reward_csv_dir)
-        self.reward_csv_path = f"{self.reward_csv_dir}model3.csv" # csv with rewards and nr of steps per episode
+        self.reward_csv_path = f"{self.reward_csv_dir}model_6layers.csv" # csv with rewards and nr of steps per episode
 
         # set variables about the states / action / features
         self.state_size = 5
@@ -37,7 +37,7 @@ class EpisodeLoop:
         self.extra_win_reward = 0 # reward for winning is 10 + extra_win_reward
         self.negative_value = 1
 
-        self.model_name = "model3.hdf5"
+        self.model_name = "model_6layers.hdf5"
         self.model_weights = f"output/model_output/{self.model_name}"
 
         # initialize agent and environment
@@ -154,7 +154,7 @@ class EpisodeLoop:
 
         with open(self.reward_csv_path, mode="w") as f:
             writer = csv.writer(f, delimiter=",", )
-            writer.writerow(["episode nr", "reward", "timesteps"])
+            writer.writerow(["episode nr", "result", "timesteps"])
 
         stopwatch_main = Stopwatch()
         stopwatch_main.start()

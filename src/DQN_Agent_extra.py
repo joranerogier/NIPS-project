@@ -1,6 +1,7 @@
 from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 import random
 from keras.optimizers import SGD
 import numpy as np
@@ -12,21 +13,21 @@ class NeurosmashAgent:
     """ Agent trained using DQN. """
 
     def __init__(self, state_size, action_size, batch_size):
-        self.model_name = "first_model.hdf5"
+        self.model_name = "weights_0250.hdf5"
         self.weights_path = f"output/model_output/{self.model_name}"
 
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000) # replay buffer
         self.gamma = 0.95 # discount factor / decay rate --> SLM Lab  to fit this properly?
-        self.epsilon = 0.5 # exploration rate
+        self.epsilon = 0#.29 # exploration rate
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
         self.learning_rate = 0.001 #1
         self.batch_size = batch_size
         self.model = self._build_model()
 
-
+    '''
     def _build_model(self):
         model = Sequential()
         model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
@@ -36,7 +37,23 @@ class NeurosmashAgent:
         model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
         model.load_weights(self.weights_path)
         return model
+    '''
 
+    def _build_model(self):
+        model = Sequential()
+        model.add(Dense(self.batch_size, activation='relu', input_dim=self.state_size))
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dropout(0.1))
+        #model.add(Dense(self.batch_size, activation='relu')) # extra layer
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.batch_size, activation='relu'))
+        model.add(Dense(self.action_size, activation='linear'))
+        model.compile(loss='mse', optimizer=SGD(lr=self.learning_rate)) # originally Adam
+        model.load_weights(self.weights_path)
+        return model
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
